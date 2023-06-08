@@ -1,0 +1,48 @@
+version: "3.7"
+services:
+  app:
+    build:
+      args:
+        user: zrshishir
+        uid: 1000
+      context: ./
+      dockerfile: Dockerfile
+    image: dev
+    container_name: dev-app
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./:/var/www
+    networks:
+      - dev-network
+  mongo:
+    image: mongo
+    restart: always
+    container_name: mongo-docker
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongoadmin
+      MONGO_INITDB_ROOT_PASSWORD: mongoadmin
+      #MONGODB_AUTH_DATABASE: admin
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./workspace:/workspace
+      - type: volume
+        source: mongodb_data_volume
+        target: /data/db
+
+  nginx:
+    image: nginx:alpine
+    container_name: dev-nginx
+    restart: unless-stopped
+    ports:
+      - 8000:80
+    volumes:
+      - ./:/var/www
+      - ./docker-compose/nginx:/etc/nginx/conf.d/
+    networks:
+      - dev-network
+
+networks:
+  dev-network:
+    driver: bridge
